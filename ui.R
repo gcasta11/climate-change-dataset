@@ -1,23 +1,16 @@
-library(shiny)
-library(dplyr)
 library(ggplot2)
 library(plotly)
-install.packages("shiny themes")
-library(shinythemes)
+library(bslib)
+climate_df <- read.csv("owid-co2-data.csv")
+my_theme = bs_theme(
+  bg = "lightblue",
+  fg = "black",
+  primary = "lightgreen",
 
-climate_df <- read.csv("Downloads/info_201_code/a4-climate-change-gcasta11/owid-co2-data.csv")
-my_theme <- bs_theme(
-  bootswatch_theme = "cerulean",
-  navbar_color = "#337ab7",
-  navbar_link_color = "white",
-  navbar_brand_color = "pink"
 )
-
-
-# Define UI
 ui <- navbarPage(
-  theme = my_theme,
   "A4 Climate Change",
+  theme = my_theme,
   tabPanel("Exploring the Data",
            h1("Introduction to Climate Change"),
            p("Global warming has continued to be a great inhibitor for the safety ",
@@ -75,21 +68,22 @@ ui <- navbarPage(
              "so we can accurately track who is causing this massive epidemic of ",
              "heat waves,forest fires, droughts, and melting ice caps. "),
 
-           p("The average coal emissions per capital would be "),
-           verbatimTextOutput("avg_coal_co2"),
+           p("The average coal emissions per capita: "),
+           textOutput("mean"),
            
-           p("The country with the maximum coal CO2 emissions per capita is "),
-           verbatimTextOutput("max_coal_co2"),
+           p("The country with the maximum coal CO2 emissions per capita: "),
+           textOutput("max"),
            
-           p("The country with the maximum coal CO2 emissions per capita is "),
-           verbatimTextOutput("min_coal_co2"),
+           p("The country with the minimum coal CO2 emissions per capita: "),
+           textOutput("min"),
            
-           p("Changes in coal CO2 emissions over time vary from country to country. ",
-           "The country with the largest uptick in carbon dioxide emission would be "),
-           verbatimTextOutput("country_coal_co2_overtime"),
+           p("The population of the country with the maximum coal CO2 emissions ",
+             "per capita: "),
+           textOutput("population_max"),
            
-           p("The amout of CO2 emitted from the country above is "),
-           verbatimTextOutput("coal_co2_change"),
+           p("The population of the country with the least amount of coal CO2 ",
+             "emissions: "),
+           textOutput("population_min"),
           
            h2("Conclusion"),
            p("There are many ways to calculate the change of carbon emission ",
@@ -101,16 +95,25 @@ ui <- navbarPage(
   tabPanel("Visualization",
            sidebarLayout(
              sidebarPanel(
-               h2(""),
+               h2("Select Year"),
                selectInput(
-                 inputId = "x_axis_column",
-                 label = "X-Axis",
-                 choices = country,
-                 selected = avg_co2_coal_per_capita
+                 inputId = "start",
+                 label = "Select the beginning year",
+                 choices = 1850:2021,
+                 selected = "2000"),
+               selectInput(inputId = "end",
+                          label = "Select the ending year",
+                          choices = 1850 : 2021,
+                          selected = "2000"),
+               selectInput(inputId = "country_select",
+                           label = "Select the country",
+                           choices = unique(climate_df$country),
+                           multiple = FALSE),
+             ),
+             mainPanel(
+               plotlyOutput("plot"),
+               textOutput("explain_plot")
              )
-           ),
-           mainPanel(plotlyOutput("graph"))
            )
   )
 )
-

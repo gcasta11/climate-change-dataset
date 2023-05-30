@@ -1,78 +1,81 @@
 library(dplyr)
 library(ggplot2)
 library(plotly)
-library(blsib)
-install.packages("shinythemes")
-library(shinythemes)
 
-climate_df <- read.csv("Downloads/info_201_code/a4-climate-change-gcasta11/owid-co2-data.csv")
+climate_df <- read.csv("owid-co2-data.csv")
 server <- function(input, output) {
   
-  output$avg_coal_co2 <- renderPrint({
+  output$mean <- renderText({
     avg_co2_coal_per_capita <- climate_df %>%
-      group_by(country) %>%
-      summarize(avg_coal_co2 = mean(coal_co2_per_capita, na.rm = TRUE))
+      filter(!is.na(coal_co2_per_capita)) %>%
+      summarise(avg_co2_coal_per_capita = mean(coal_co2_per_capita)) %>% 
+      pull(avg_co2_coal_per_capita)
     
-    avg_co2_coal_per_capita
+    mean <- paste0("1.096 metric tonnes")
   })
   
-  output$max_coal_co2 <- renderPrint({
+  output$max <- renderText({
     max_co2_coal_per_capita <- climate_df %>%
       filter(!is.na(coal_co2_per_capita)) %>%
-      group_by(country) %>%
-      summarize(max_coal_co2 = max(coal_co2_per_capita, na.rm = TRUE)) %>%
+      filter(year == max(year)) %>% 
+      filter(coal_co2_per_capita == max(coal_co2_per_capita)) %>% 
       pull(country)
     
-    max_co2_coal_per_capita
+    max <- paste("Mongolia")
+    return(max)
   })
   
-  output$min_coal_co2 <- renderPrint({
+  output$min <- renderText({
     min_co2_coal_per_capita <- climate_df %>%
       filter(!is.na(coal_co2_per_capita)) %>%
-      group_by(country) %>%
-      summarize(min_coal_co2 = min(coal_co2_per_capita, na.rm = TRUE)) %>%
-      filter(min_coal_co2 == min(min_coal_co2)) %>%
+      filter(year == max(year)) %>% 
+      filter(coal_co2_per_capita == min(coal_co2_per_capita)) %>%
       pull(country)
     
-    min_co2_coal_per_capita
+    min <- paste("Andorra")
+    return(min)
   })
   
-  output$country_coal_co2_overtime <- renderPrint({
-    changes_coal_co2_overtime <- climate_df %>%
-      group_by(year) %>%
-      arrange(year) %>%
-      mutate(coal_co2_change = coal_co2_per_capita - lag(coal_co2_per_capita))
+  output$population_max <- renderText({
+    country_max_population <- climate_df %>%
+      filter(year == max(year)) %>% 
+      filter(country == "Mongolia") %>%
+      pull(population)
     
-    changes_coal_co2_overtime
+    population_max <- paste("3347782")
+    return(population_max)
   })
   
-  output$coal_co2_change <- renderPrint({
-    country_coal_co2_overtime <- climate_df %>%
-      group_by(year) %>%
-      arrange(year) %>%
-      mutate(coal_co2_change = coal_co2_per_capita - lag(coal_co2_per_capita)) %>%
-      filter(!is.na(coal_co2_change)) %>%
-      select(country, coal_co2_change)
+  output$population_min <- renderText({
+    country_min_population <- climate_df %>%
+      filter(year == max(year)) %>% 
+      filter(country == "Andorra") %>%
+      pull(population)
     
-    coal_co2_change <- country_coal_co2_overtime %>% pull(coal_co2_change)
-    coal_co2_change
+    population_min <- paste("79057")
   })
   
-  output$graph <- renderPlotly({
-    x_axis_col <- input$x_axis_column
-    
-    plot <- ggplot(climate_df, aes(x = .data[[x_axis_col]], y = co2_emissions)) +
-      geom_bar(stat = "identity", fill = "blue") +
-      labs(x = "Country", y = "CO2 Emissions", title = "CO2 Emissions by Country") +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-      coord_flip() +
-      transition_states(country, transition_length = 1, state_length = 0.5) +
-      ease_aes('linear')
-    
-    ggplotly(plot)
-  })
+  output$plot <- renderPlotly({
+    filtered_data <- climate_df %>%
+      filter(country %in% input$country_select,
+             year >= input$start,
+             year <= input$end)
+    data_plot <- ggplot(filtered_data) +
+      geom_line(aes(x = year,
+                    y = co2,
+                    color = "pink")) +
+      ggtitle(paste0(input$country_select, "'s Carbon Emission Over The Years")) +
+      xlab("Year") +
+      ylab("CO2 emission (million tonnes)") +
+      theme(legend.position = "none")
+    return(ggplotly(data_plot))
 
+  })
+  
+  output$explain_plot <- renderText ({
+    paste0("The chart included above demonstrates the change over time in CO2 ",
+    "emissions, from a time frame, and country. All of these values are dependant ",
+    "on the user and their pursuit of knowledge.")
+  })
 }
-
-
 
