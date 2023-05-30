@@ -1,14 +1,18 @@
+library(shiny)
+library(dplyr)
 library(ggplot2)
 library(plotly)
-library(dplyr)
-library(bslib)
+install.packages("shiny themes")
+library(shinythemes)
 
+climate_df <- read.csv("Downloads/info_201_code/a4-climate-change-gcasta11/owid-co2-data.csv")
 my_theme <- bs_theme(
   bootswatch_theme = "cerulean",
   navbar_color = "#337ab7",
   navbar_link_color = "white",
   navbar_brand_color = "pink"
 )
+
 
 # Define UI
 ui <- navbarPage(
@@ -47,23 +51,65 @@ ui <- navbarPage(
              "different organizations such as Berkley Earth, IPCC, Climate Action Tracker ",
              "and many other resources, all cited on ourworldindata.org."),
            h2("Summary Statistics"),
-           p("The average "),
-           verbatimTextOutput("mean"),
-           verbatimTextOutput("median")
+           p("In light of recent heat waves, melting ice caps, and an uptick in crude oil ",
+             "production and fracking, global warming has been a very controversial and ",
+             "divisive subject, in many countries. However, as consumers of media, we ",
+             "are less liekly to receive direct facts, when it comes to global wamring. ",
+             "This is because many industries are on a capitalistic pursuit, meanwhile ",
+             "Earth's demise is simply seen as a byproduct, for these industries. "),
+           p("It is important to be aware of what greenhouse gases are, and how they ",
+             "Contribute to global warming as a whole. Carbon dioxide is a type of ",
+             "greenhouse gas, which absorb infrared energy, and re-emit that energy ",
+             "back towards the Earth and into space. Infrared light is what is ",
+             "emitted from sunlight, which we then feel as heat on Earth. ",
+             "Usually the amount of infrared light absorbed by the Earth is not ",
+             "harmful, however, when CO2 and other greenhouse gases interact with it ",
+             "that infrared energy is re-emitted in all directions, where it is then ",
+             "returns to Earth as heat, contributing to global warming. Burning coal ",
+             "is the largest source of carbon dioxide emisions. When we track how ",
+             "much coal is burned per country, we are able to estimate how much harm ",
+             "is being done to the Earth, from a global perspective."),
+           p("The following values have been derived from Data on CO2 and Greenhouse ",
+             "Gas Emissions. It is important to realize which countries are burning ",
+             "the most coal, therein releasing the most CO2 into the atmosphere, ",
+             "so we can accurately track who is causing this massive epidemic of ",
+             "heat waves,forest fires, droughts, and melting ice caps. "),
+
+           p("The average coal emissions per capital would be "),
+           verbatimTextOutput("avg_coal_co2"),
+           
+           p("The country with the maximum coal CO2 emissions per capita is "),
+           verbatimTextOutput("max_coal_co2"),
+           
+           p("The country with the maximum coal CO2 emissions per capita is "),
+           verbatimTextOutput("min_coal_co2"),
+           
+           p("Changes in coal CO2 emissions over time vary from country to country. ",
+           "The country with the largest uptick in carbon dioxide emission would be "),
+           verbatimTextOutput("country_coal_co2_overtime"),
+           
+           p("The amout of CO2 emitted from the country above is "),
+           verbatimTextOutput("coal_co2_change"),
+          
+           h2("Conclusion"),
+           p("There are many ways to calculate the change of carbon emission ",
+             "overtime. However, it is important to take note of how carbon emissions ",
+             "have changed and increased over time, and who is causing these changes. ",
+             "Knowing where and why these changes are occurring, might be the first step ",
+             "in resolving this ongoing issue of climate change.")
   ),
   tabPanel("Visualization",
            sidebarLayout(
              sidebarPanel(
-               selectInput("variable", "Select a variable:", choices = c("Sepal Length", "Sepal Width", "Petal Length", "Petal Width")),
-               sliderInput("color", "Select a color:", min = 1, max = 3, value = 1),
-               sliderInput("year", "Select a year:", min = 1950, max = 2022, value = 2000)
-             ),
-             
-             mainPanel(
-               plotlyOutput("scatterplot"),
-               br(),
-               verbatimTextOutput("description")
+               h2(""),
+               selectInput(
+                 inputId = "x_axis_column",
+                 label = "X-Axis",
+                 choices = country,
+                 selected = avg_co2_coal_per_capita
              )
+           ),
+           mainPanel(plotlyOutput("graph"))
            )
   )
 )
